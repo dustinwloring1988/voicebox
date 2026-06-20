@@ -2,10 +2,11 @@
 CUDA backend download, assembly, and verification.
 
 Downloads two archives from GitHub Releases:
-  1. Server core (voicebox-server-cuda.tar.gz) — the exe + non-NVIDIA deps,
-     versioned with the app.
-  2. CUDA libs (cuda-libs-{version}.tar.gz) — NVIDIA runtime libraries,
-     versioned independently (only redownloaded on CUDA toolkit bump).
+  1. Server core (voicebox-server-cuda-{platform}.tar.gz) — the exe +
+     non-NVIDIA deps, versioned with the app.
+  2. CUDA libs (cuda-libs-{version}-{platform}.tar.gz) — NVIDIA runtime
+     libraries, versioned independently (only redownloaded on CUDA toolkit
+     bump).
 
 Both archives are extracted into {data_dir}/backends/cuda/ which forms the
 complete PyInstaller --onedir directory structure that torch expects.
@@ -16,6 +17,7 @@ import hashlib
 import json
 import logging
 import os
+import platform
 import sys
 import tarfile
 from pathlib import Path
@@ -40,6 +42,24 @@ CUDA_LIBS_VERSION = "cu128-v1"
 # can both invoke download_cuda_binary(); without this lock the progress-
 # manager status check is a TOCTOU race.
 _download_lock = asyncio.Lock()
+
+
+def get_platform_identifier() -> Optional[str]:
+    """Return the platform identifier used in CUDA archive filenames.
+
+    Returns:
+        Platform string like "linux-x86_64" or "windows-x86_64", or None
+        if CUDA is not supported on this platform (e.g. macOS).
+    """
+    system = platform.system()
+    machine = platform.machine().lower()
+
+    if system == "Linux" and machine == "x86_64":
+        return "linux-x86_64"
+    elif system == "Windows" and machine in ("amd64", "x86_64"):
+        return "windows-x86_64"
+
+    return None
 
 
 def get_backends_dir() -> Path:
@@ -286,11 +306,43 @@ async def _download_cuda_binary_locked(version: Optional[str] = None):
     )
 
     base_url = f"{GITHUB_RELEASES_URL}/{version}"
-    server_archive = "voicebox-server-cuda.tar.gz"
-    libs_archive = f"cuda-libs-{CUDA_LIBS_VERSION}.tar.gz"
+    plat = get_platform_identifier()
+
+    if plat:
+        server_archive = f"voicebox-server-cuda-{plat}.tar.gz"
+        libs_archive = f"cuda-libs-{CUDA_LIBS_VERSION}-{plat}.tar.gz"
+    else:
+        # Fallback for unsupported platforms (shouldn't normally reach here)
+        server_archive = "voicebox-server-cuda.tar.gz"
+        libs_archive = f"cuda-libs-{CUDA_LIBS_VERSION}.tar.gz"
 
     try:
         async with httpx.AsyncClient(follow_redirects=True, timeout=30.0) as client:
+            # If platform-specific archives are not found, fall back to
+            # legacy platform-agnostic names for backward compatibility.
+            if plat:
+                try:
+                    head = await client.head(f"{base_url}/{server_archive}")
+                    if head.status_code == 404:
+                        legacy_server = "voicebox-server-cuda.tar.gz"
+                        logger.info(
+                            f"Platform-specific archive {server_archive} not found, "
+                            f"falling back to {legacy_server}"
+                        )
+                        server_archive = legacy_server
+                except Exception:
+                    pass
+                try:
+                    head = await client.head(f"{base_url}/{libs_archive}")
+                    if head.status_code == 404:
+                        legacy_libs = f"cuda-libs-{CUDA_LIBS_VERSION}.tar.gz"
+                        logger.info(
+                            f"Platform-specific archive {libs_archive} not found, "
+                            f"falling back to {legacy_libs}"
+                        )
+                        libs_archive = legacy_libs
+                except Exception:
+                    pass
             # Estimate total download size
             total_size = 0
             if need_server:
@@ -341,7 +393,7 @@ async def _download_cuda_binary_locked(version: Optional[str] = None):
                 )
 
                 # Write local cuda-libs.json manifest
-                manifest = {"version": CUDA_LIBS_VERSION}
+                manifest = {"version": CUDA_LIBS_VERSION, "platform": plat}
                 get_cuda_libs_manifest_path().write_text(json.dumps(manifest, indent=2) + "\n")
 
         logger.info(f"CUDA backend ready at {cuda_dir}")
