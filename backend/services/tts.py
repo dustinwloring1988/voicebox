@@ -2,7 +2,6 @@
 TTS inference module - delegates to backend abstraction layer.
 """
 
-from typing import Optional
 import numpy as np
 import io
 import soundfile as sf

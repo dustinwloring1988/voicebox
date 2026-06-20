@@ -34,6 +34,7 @@ select = [
     "PIE",   # misc lints
     "PT",    # flake8-pytest-style
     "RUF",   # ruff-specific rules
+    "DTZ",   # datetime timezone awareness (catches naive datetime usage)
     "ERA",   # commented-out code detection
     "FIX",   # flag TODO/FIXME/HACK/XXX for review
 ]

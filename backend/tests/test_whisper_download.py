@@ -5,7 +5,6 @@ Test real model download with SSE progress monitoring.
 import asyncio
 import json
 import httpx
-import time
 from typing import List, Dict
 
 async def monitor_sse_stream(model_name: str, timeout: int = 300):

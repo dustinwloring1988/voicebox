@@ -14,7 +14,6 @@ from typing import ClassVar, List, Optional, Tuple
 
 import numpy as np
 
-from . import TTSBackend
 from .base import (
     is_model_cached,
     get_model_download_status,

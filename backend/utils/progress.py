@@ -2,12 +2,11 @@
 Progress tracking for model downloads using Server-Sent Events.
 """
 
-from typing import Optional, Callable, Dict, List
-from fastapi.responses import StreamingResponse
+from typing import Optional, Dict, List
 import asyncio
 import json
 import threading
-from datetime import datetime
+from datetime import datetime, UTC
 
 
 class ProgressManager:
@@ -105,7 +104,7 @@ class ProgressManager:
             "progress": progress_pct,
             "filename": filename,
             "status": status,
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
 
         # Thread-safe update of progress dict (always update internal state)
@@ -294,7 +293,7 @@ class ProgressManager:
                     "filename": None,
                     "status": "error",
                     "error": error,
-                    "timestamp": datetime.now().isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                 }
                 self._progress[model_name] = progress_data
         

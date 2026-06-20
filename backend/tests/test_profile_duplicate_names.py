@@ -16,7 +16,7 @@ from sqlalchemy.orm import sessionmaker
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from database import Base, VoiceProfile as DBVoiceProfile
+from database import Base
 from models import VoiceProfileCreate
 from profiles import create_profile, update_profile
 

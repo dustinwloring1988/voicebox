@@ -17,12 +17,10 @@ Languages supported (via misaki G2P):
 
 import asyncio
 import logging
-import os
 from typing import Optional
 
 import numpy as np
 
-from . import TTSBackend
 from .base import (
     get_torch_device,
     combine_voice_prompts as _combine_voice_prompts,

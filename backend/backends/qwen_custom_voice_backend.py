@@ -21,7 +21,7 @@ from typing import Optional
 import numpy as np
 import torch
 
-from . import TTSBackend, LANGUAGE_CODE_TO_NAME
+from . import LANGUAGE_CODE_TO_NAME
 from .base import (
     is_model_cached,
     get_model_download_status,

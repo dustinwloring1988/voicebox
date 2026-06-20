@@ -11,12 +11,11 @@ import asyncio
 import logging
 from typing import Optional
 
-from . import LLMBackend, DEFAULT_LLM_MAX_TOKENS, DEFAULT_LLM_TEMPERATURE
+from . import DEFAULT_LLM_MAX_TOKENS, DEFAULT_LLM_TEMPERATURE
 from .base import (
     is_model_cached,
     get_torch_device,
     empty_device_cache,
-    manual_seed,
     model_load_progress,
 )
 from ..utils.hf_offline_patch import force_offline_if_cached
