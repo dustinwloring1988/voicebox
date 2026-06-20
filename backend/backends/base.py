@@ -8,6 +8,7 @@ voice prompt combination, and model loading progress tracking.
 import logging
 import platform
 from contextlib import contextmanager
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, List, Optional, Tuple
 
@@ -75,6 +76,71 @@ def is_model_cached(
     except Exception as e:
         logger.warning(f"Error checking cache for {hf_repo}: {e}")
         return False
+
+
+@dataclass
+class ModelDownloadStatus:
+    """Detailed status of a model's download state."""
+
+    downloaded: bool
+    has_incomplete_files: bool
+    missing_required_files: list[str]
+
+
+def get_model_download_status(
+    hf_repo: str,
+    *,
+    weight_extensions: tuple[str, ...] = (".safetensors", ".bin"),
+    required_files: Optional[list[str]] = None,
+) -> ModelDownloadStatus:
+    """Check download status with detail about partial/incomplete downloads.
+
+    Returns a ModelDownloadStatus indicating whether the model is fully
+    downloaded, has incomplete files (interrupted download), or is missing
+    required files.
+    """
+    try:
+        from huggingface_hub import constants as hf_constants
+
+        repo_cache = Path(hf_constants.HF_HUB_CACHE) / ("models--" + hf_repo.replace("/", "--"))
+
+        if not repo_cache.exists():
+            return ModelDownloadStatus(downloaded=False, has_incomplete_files=False, missing_required_files=required_files or [])
+
+        blobs_dir = repo_cache / "blobs"
+        has_incomplete = blobs_dir.exists() and any(blobs_dir.glob("*.incomplete"))
+
+        snapshots_dir = repo_cache / "snapshots"
+        if not snapshots_dir.exists():
+            return ModelDownloadStatus(
+                downloaded=False,
+                has_incomplete_files=has_incomplete,
+                missing_required_files=required_files or [],
+            )
+
+        if required_files:
+            missing = [fname for fname in required_files if not any(snapshots_dir.rglob(fname))]
+            if missing:
+                return ModelDownloadStatus(
+                    downloaded=False,
+                    has_incomplete_files=has_incomplete,
+                    missing_required_files=missing,
+                )
+            return ModelDownloadStatus(downloaded=True, has_incomplete_files=has_incomplete, missing_required_files=[])
+
+        for ext in weight_extensions:
+            if any(snapshots_dir.rglob(f"*{ext}")):
+                return ModelDownloadStatus(downloaded=True, has_incomplete_files=has_incomplete, missing_required_files=[])
+
+        return ModelDownloadStatus(
+            downloaded=False,
+            has_incomplete_files=has_incomplete,
+            missing_required_files=[],
+        )
+
+    except Exception as e:
+        logger.warning(f"Error checking download status for {hf_repo}: {e}")
+        return ModelDownloadStatus(downloaded=False, has_incomplete_files=False, missing_required_files=[])
 
 
 def get_torch_device(

@@ -622,7 +622,7 @@ async def load_engine_model(engine: str, model_size: str = "default") -> None:
 
 
 async def ensure_model_cached_or_raise(engine: str, model_size: str = "default") -> None:
-    """Check if a model is cached, raise HTTPException if not. Used by streaming endpoint."""
+    """Check if a model is cached, raise HTTPException if not. Used by streaming and generate endpoints."""
     from fastapi import HTTPException
 
     backend = get_tts_backend_for_engine(engine)
@@ -632,19 +632,27 @@ async def ensure_model_cached_or_raise(engine: str, model_size: str = "default")
             cfg = c
             break
 
+    display = cfg.display_name if cfg else engine
+    model_name = cfg.model_name if cfg else engine
+
     if engine in ("qwen", "qwen_custom_voice", "tada"):
-        if not backend._is_model_cached(model_size):
-            raise HTTPException(
-                status_code=400,
-                detail=f"Model {model_size} is not downloaded yet. Use /generate to trigger a download.",
-            )
+        status = backend._get_model_download_status(model_size)
     else:
-        if not backend._is_model_cached():
-            display = cfg.display_name if cfg else engine
-            raise HTTPException(
-                status_code=400,
-                detail=f"{display} model is not downloaded yet. Use /generate to trigger a download.",
-            )
+        status = backend._get_model_download_status()
+
+    if status.downloaded:
+        return
+
+    if status.has_incomplete_files:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Model '{display}' download is incomplete. Visit Settings \u2192 Models to delete the partial download and try again.",
+        )
+
+    raise HTTPException(
+        status_code=404,
+        detail=f"Model '{display}' is not downloaded. Visit Settings \u2192 Models to download it.",
+    )
 
 
 def unload_model_by_config(config: ModelConfig) -> bool:

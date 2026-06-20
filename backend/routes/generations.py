@@ -76,6 +76,10 @@ async def generate_speech(
 
     model_size = (data.model_size or "1.7B") if engine_has_model_sizes(engine) else None
 
+    from ..backends import ensure_model_cached_or_raise
+
+    await ensure_model_cached_or_raise(engine, model_size or "default")
+
     text = data.text
     source = "manual"
     if data.personality and getattr(profile, "personality", None):

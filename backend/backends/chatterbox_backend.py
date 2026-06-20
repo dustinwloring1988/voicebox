@@ -17,6 +17,7 @@ import numpy as np
 from . import TTSBackend
 from .base import (
     is_model_cached,
+    get_model_download_status,
     get_torch_device,
     empty_device_cache,
     manual_seed,
@@ -60,6 +61,9 @@ class ChatterboxTTSBackend:
 
     def _is_model_cached(self, model_size: str = "default") -> bool:
         return is_model_cached(CHATTERBOX_HF_REPO, required_files=_MTL_WEIGHT_FILES)
+
+    def _get_model_download_status(self, model_size: str = "default"):
+        return get_model_download_status(CHATTERBOX_HF_REPO, required_files=_MTL_WEIGHT_FILES)
 
     async def load_model(self, model_size: str = "default") -> None:
         """Load the Chatterbox multilingual model."""
