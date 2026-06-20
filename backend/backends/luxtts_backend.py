@@ -14,6 +14,7 @@ import numpy as np
 from . import TTSBackend
 from .base import (
     is_model_cached,
+    get_model_download_status,
     get_torch_device,
     empty_device_cache,
     manual_seed,
@@ -53,6 +54,12 @@ class LuxTTSBackend:
 
     def _is_model_cached(self, model_size: str = "default") -> bool:
         return is_model_cached(
+            LUXTTS_HF_REPO,
+            weight_extensions=(".pt", ".safetensors", ".onnx", ".bin"),
+        )
+
+    def _get_model_download_status(self, model_size: str = "default"):
+        return get_model_download_status(
             LUXTTS_HF_REPO,
             weight_extensions=(".pt", ".safetensors", ".onnx", ".bin"),
         )

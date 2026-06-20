@@ -23,6 +23,8 @@ import numpy as np
 from . import TTSBackend
 from .base import (
     is_model_cached,
+    get_model_download_status,
+    ModelDownloadStatus,
     get_torch_device,
     empty_device_cache,
     manual_seed,
@@ -81,6 +83,16 @@ class HumeTadaBackend:
         model_cached = is_model_cached(repo, required_files=_TADA_MODEL_WEIGHT_FILES)
         codec_cached = is_model_cached(TADA_CODEC_REPO, required_files=_TADA_CODEC_WEIGHT_FILES)
         return model_cached and codec_cached
+
+    def _get_model_download_status(self, model_size: str = "1B"):
+        repo = TADA_MODEL_REPOS.get(model_size, TADA_1B_REPO)
+        model_status = get_model_download_status(repo, required_files=_TADA_MODEL_WEIGHT_FILES)
+        codec_status = get_model_download_status(TADA_CODEC_REPO, required_files=_TADA_CODEC_WEIGHT_FILES)
+        if not model_status.downloaded:
+            return model_status
+        if not codec_status.downloaded:
+            return codec_status
+        return ModelDownloadStatus(downloaded=True, has_incomplete_files=False, missing_required_files=[])
 
     async def load_model(self, model_size: str = "1B") -> None:
         """Load the TADA model and encoder."""

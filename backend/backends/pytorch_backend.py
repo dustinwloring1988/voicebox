@@ -21,6 +21,7 @@ from . import (
 )
 from .base import (
     is_model_cached,
+    get_model_download_status,
     get_torch_device,
     empty_device_cache,
     manual_seed,
@@ -70,6 +71,9 @@ class PyTorchTTSBackend:
 
     def _is_model_cached(self, model_size: str) -> bool:
         return is_model_cached(self._get_model_path(model_size))
+
+    def _get_model_download_status(self, model_size: str):
+        return get_model_download_status(self._get_model_path(model_size))
 
     async def load_model_async(self, model_size: Optional[str] = None):
         """

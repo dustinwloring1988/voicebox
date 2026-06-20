@@ -61,6 +61,29 @@ async def run_generation(
         if not tts_model.is_loaded():
             await history.update_generation_status(generation_id, "loading_model", bg_db)
 
+        # Fail fast: check model is downloaded before attempting load
+        if hasattr(tts_model, "_get_model_download_status"):
+            from ..backends import get_tts_model_configs
+
+            if engine in ("qwen", "qwen_custom_voice", "tada"):
+                dl_status = tts_model._get_model_download_status(model_size)
+            else:
+                dl_status = tts_model._get_model_download_status()
+
+            if not dl_status.downloaded:
+                display = engine
+                for c in get_tts_model_configs():
+                    if c.engine == engine and c.model_size == (model_size or "default"):
+                        display = c.display_name
+                        break
+                if dl_status.has_incomplete_files:
+                    raise ValueError(
+                        f"Model '{display}' download is incomplete. Visit Settings \u2192 Models to delete the partial download and try again."
+                    )
+                raise ValueError(
+                    f"Model '{display}' is not downloaded. Visit Settings \u2192 Models to download it."
+                )
+
         await load_engine_model(engine, model_size)
 
         voice_prompt = await profiles.create_voice_prompt_for_profile(
