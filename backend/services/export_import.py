@@ -9,7 +9,6 @@ import json
 import zipfile
 import io
 from pathlib import Path
-from typing import Optional
 from sqlalchemy.orm import Session
 
 from ..models import VoiceProfileResponse
@@ -17,6 +16,7 @@ from ..database import VoiceProfile as DBVoiceProfile, ProfileSample as DBProfil
 from .profiles import create_profile, add_profile_sample
 from ..models import VoiceProfileCreate
 from .. import config
+from datetime import UTC
 
 
 def _get_unique_profile_name(name: str, db: Session) -> str:
@@ -432,7 +432,7 @@ async def import_generation_from_zip(file_bytes: bytes, db: Session) -> dict:
                     duration=generation_data["duration"],
                     seed=generation_data.get("seed"),
                     instruct=generation_data.get("instruct"),
-                    created_at=datetime.utcnow(),
+                    created_at=datetime.now(UTC),
                 )
                 
                 db.add(db_generation)

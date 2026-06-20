@@ -9,7 +9,7 @@ import logging
 import platform
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Callable, List, Optional, Tuple
+from typing import List, Optional, Tuple
 
 import numpy as np
 

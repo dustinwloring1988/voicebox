@@ -12,9 +12,7 @@ Usage:
     python -m pytest backend/tests/test_cors.py -v
 """
 
-import os
 import pytest
-from unittest.mock import patch
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.testclient import TestClient

@@ -2,15 +2,12 @@
 Generation history management module.
 """
 
-from typing import List, Optional, Tuple
-from datetime import datetime
+from typing import Optional
+from datetime import datetime, UTC
 import uuid
-import shutil
-from pathlib import Path
 from sqlalchemy.orm import Session
-from sqlalchemy import or_
 
-from ..models import GenerationRequest, GenerationResponse, HistoryQuery, HistoryResponse, HistoryListResponse, GenerationVersionResponse, EffectConfig
+from ..models import GenerationResponse, HistoryQuery, HistoryResponse, HistoryListResponse, GenerationVersionResponse, EffectConfig
 from ..database import Generation as DBGeneration, GenerationVersion as DBGenerationVersion, VoiceProfile as DBVoiceProfile
 from .. import config
 
@@ -104,7 +101,7 @@ async def create_generation(
         model_size=model_size,
         status=status,
         source=source,
-        created_at=datetime.utcnow(),
+        created_at=datetime.now(UTC),
     )
 
     db.add(db_generation)
