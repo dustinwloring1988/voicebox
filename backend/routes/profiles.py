@@ -225,6 +225,10 @@ async def update_profile_sample(
     return sample
 
 
+ALLOWED_AVATAR_TYPES = {"image/jpeg", "image/png", "image/webp"}
+MAX_AVATAR_BYTES = 10 * 1024 * 1024  # 10 MB
+
+
 @router.post("/profiles/{profile_id}/avatar", response_model=models.VoiceProfileResponse)
 async def upload_profile_avatar(
     profile_id: str,
@@ -232,9 +236,27 @@ async def upload_profile_avatar(
     db: Session = Depends(get_db),
 ):
     """Upload or update avatar image for a profile."""
+    if file.content_type not in ALLOWED_AVATAR_TYPES:
+        raise HTTPException(
+            status_code=415,
+            detail=f"Unsupported image type '{file.content_type}'. Allowed: JPEG, PNG, WebP",
+        )
+
     with tempfile.NamedTemporaryFile(delete=False, suffix=Path(file.filename).suffix) as tmp:
-        content = await file.read()
-        tmp.write(content)
+        total_size = 0
+        while True:
+            chunk = await file.read(64 * 1024)
+            if not chunk:
+                break
+            total_size += len(chunk)
+            if total_size > MAX_AVATAR_BYTES:
+                tmp.close()
+                Path(tmp.name).unlink(missing_ok=True)
+                raise HTTPException(
+                    status_code=413,
+                    detail=f"Avatar file exceeds maximum size of {MAX_AVATAR_BYTES // (1024 * 1024)} MB",
+                )
+            tmp.write(chunk)
         tmp_path = tmp.name
 
     try:
