@@ -5,7 +5,6 @@ Supports both Whisper and NVIDIA Parakeet via a single backend instance that
 branches internally on the model family.
 """
 
-from typing import Optional
 from ..backends import get_stt_backend, STTBackend
 
 

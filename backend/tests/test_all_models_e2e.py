@@ -25,8 +25,8 @@ import tempfile
 import threading
 import time
 from collections import deque
-from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
+from dataclasses import asdict, dataclass
+from datetime import datetime, UTC
 from pathlib import Path
 from typing import Optional
 
@@ -518,14 +518,14 @@ def main() -> int:
     # Tempdir + log path
     data_dir = Path(tempfile.mkdtemp(prefix="voicebox-e2e-"))
     args.output_dir.mkdir(parents=True, exist_ok=True)
-    ts = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
+    ts = datetime.now(UTC).strftime("%Y%m%d-%H%M%S")
     log_path = args.output_dir / f"server-{ts}.log"
 
     port = args.port or pick_free_port()
     base_url = f"http://127.0.0.1:{port}"
 
     server = ServerProcess(binary=binary, port=port, data_dir=data_dir, log_path=log_path)
-    started_at = datetime.now(timezone.utc)
+    started_at = datetime.now(UTC)
     results: list[ModelResult] = []
 
     try:
@@ -608,7 +608,7 @@ def main() -> int:
                       + (f" ({result.error})" if result.error else ""), flush=True)
                 results.append(result)
     finally:
-        finished_at = datetime.now(timezone.utc)
+        finished_at = datetime.now(UTC)
         server.stop()
         if not args.keep_data_dir:
             shutil.rmtree(data_dir, ignore_errors=True)

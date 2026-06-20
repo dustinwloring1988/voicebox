@@ -8,8 +8,8 @@ the model is already cached.
 import asyncio
 import json
 import httpx
-from typing import List, Dict, Optional
-from datetime import datetime
+from typing import List, Dict
+from datetime import datetime, UTC
 
 
 async def monitor_sse_stream(model_name: str, timeout: int = 120):
@@ -136,7 +136,7 @@ async def check_server():
 
 def _timestamp():
     """Get current timestamp for logging."""
-    return datetime.now().strftime("%H:%M:%S.%f")[:-3]
+    return datetime.now(UTC).strftime("%H:%M:%S.%f")[:-3]
 
 
 async def test_generation_with_cached_model():

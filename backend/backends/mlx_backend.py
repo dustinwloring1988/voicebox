@@ -2,7 +2,7 @@
 MLX backend implementation for TTS and STT using mlx-audio.
 """
 
-from typing import Optional, List, Tuple
+from typing import Optional, Tuple
 import asyncio
 import logging
 import numpy as np
@@ -18,11 +18,7 @@ patch_huggingface_hub_offline()
 ensure_original_qwen_config_cached()
 
 from . import (
-    TTSBackend,
-    STTBackend,
     LANGUAGE_CODE_TO_NAME,
-    WHISPER_HF_REPOS,
-    STT_HF_REPOS,
     stt_model_name_to_repo,
     is_parakeet_model_name,
 )
