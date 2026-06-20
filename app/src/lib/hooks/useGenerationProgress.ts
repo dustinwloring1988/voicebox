@@ -131,9 +131,11 @@ export function useGenerationProgress() {
 
             queryClient.refetchQueries({ queryKey: ['history'] });
 
+            const errorMsg = data.error || 'An error occurred during generation';
+            const isModelNotFound = /is not downloaded|download is incomplete/i.test(errorMsg);
             toast({
-              title: data.status === 'not_found' ? 'Generation not found' : 'Generation failed',
-              description: data.error || 'An error occurred during generation',
+              title: data.status === 'not_found' ? 'Generation not found' : isModelNotFound ? 'Model not available' : 'Generation failed',
+              description: errorMsg,
               variant: 'destructive',
             });
           }

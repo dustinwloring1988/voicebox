@@ -26,7 +26,7 @@ from . import (
     stt_model_name_to_repo,
     is_parakeet_model_name,
 )
-from .base import is_model_cached, combine_voice_prompts as _combine_voice_prompts, model_load_progress
+from .base import is_model_cached, get_model_download_status, combine_voice_prompts as _combine_voice_prompts, model_load_progress
 from ..utils.cache import get_cache_key, get_cached_voice_prompt, cache_voice_prompt
 
 
@@ -67,6 +67,12 @@ class MLXTTSBackend:
 
     def _is_model_cached(self, model_size: str) -> bool:
         return is_model_cached(
+            self._get_model_path(model_size),
+            weight_extensions=(".safetensors", ".bin", ".npz"),
+        )
+
+    def _get_model_download_status(self, model_size: str):
+        return get_model_download_status(
             self._get_model_path(model_size),
             weight_extensions=(".safetensors", ".bin", ".npz"),
         )

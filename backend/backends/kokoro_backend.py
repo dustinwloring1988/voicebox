@@ -153,6 +153,14 @@ class KokoroTTSBackend:
             required_files=["config.json", "kokoro-v1_0.pth"],
         )
 
+    def _get_model_download_status(self, model_size: str = "default"):
+        from .base import get_model_download_status
+
+        return get_model_download_status(
+            KOKORO_HF_REPO,
+            required_files=["config.json", "kokoro-v1_0.pth"],
+        )
+
     async def load_model(self, model_size: str = "default") -> None:
         """Load the Kokoro model."""
         if self._model is not None:

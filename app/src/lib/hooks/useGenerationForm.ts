@@ -174,9 +174,13 @@ export function useGenerationForm(options: UseGenerationFormOptions = {}) {
       });
       options.onSuccess?.(result.id);
     } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to generate audio';
+      const isModelNotFound = /is not downloaded|download is incomplete/i.test(message);
       toast({
-        title: 'Generation failed',
-        description: error instanceof Error ? error.message : 'Failed to generate audio',
+        title: isModelNotFound ? 'Model not available' : 'Generation failed',
+        description: isModelNotFound
+          ? message
+          : message,
         variant: 'destructive',
       });
     } finally {
