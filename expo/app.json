@@ -1,0 +1,52 @@
+{
+  "expo": {
+    "name": "Voicebox",
+    "slug": "voicebox",
+    "version": "0.5.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "voicebox",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#000000"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "sh.voicebox.app",
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "Voicebox needs microphone access for dictation and voice capture."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#000000"
+      },
+      "package": "sh.voicebox.app",
+      "permissions": ["RECORD_AUDIO"]
+    },
+    "plugins": [
+      [
+        "expo-router",
+        {
+          "root": "./app"
+        }
+      ],
+      [
+        "expo-av",
+        {
+          "microphonePermission": "Voicebox needs microphone access for dictation and voice capture."
+        }
+      ],
+      [
+        "expo-sharing"
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

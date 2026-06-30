@@ -9,6 +9,8 @@ app_dir := "app"
 web_dir := "web"
 venv := backend_dir / "venv"
 
+expo_dir := "expo"
+
 # Platform-aware paths
 venv_bin := if os() == "windows" { venv / "Scripts" } else { venv / "bin" }
 python := if os() == "windows" { venv_bin / "python.exe" } else { venv_bin / "python" }
@@ -180,6 +182,15 @@ dev-web: _ensure-venv
     Write-Host "Starting web app..."; \
     try { Set-Location "{{ web_dir }}"; bun run dev } finally { if ($backendJob) { taskkill /PID $backendJob.Id /T /F 2>$null | Out-Null } }
 
+# Start Expo mobile app (requires backend running separately)
+[unix]
+dev-expo:
+    cd {{ expo_dir }} && bun run dev
+
+[windows]
+dev-expo:
+    Set-Location "{{ expo_dir }}"; bun run dev
+
 # Kill all dev processes
 [unix]
 kill:
@@ -247,6 +258,15 @@ build-web:
 [windows]
 build-web:
     Set-Location "{{ web_dir }}"; bun run build
+
+# Build Expo mobile app (requires EAS account)
+[unix]
+build-expo:
+    cd {{ expo_dir }} && bun run build:android && bun run build:ios
+
+[windows]
+build-expo:
+    Set-Location "{{ expo_dir }}"; bun run build:android; bun run build:ios
 
 # ─── Code Quality ────────────────────────────────────────────────────
 
@@ -388,6 +408,7 @@ clean-all: clean clean-python
     rm -rf {{ app_dir }}/node_modules
     rm -rf {{ tauri_dir }}/node_modules
     rm -rf {{ web_dir }}/node_modules
+    rm -rf {{ expo_dir }}/node_modules
     cd {{ tauri_dir }}/src-tauri && cargo clean
 
 [windows]
@@ -396,6 +417,7 @@ clean-all: clean clean-python
     if (Test-Path "{{ app_dir }}/node_modules") { Remove-Item -Recurse -Force "{{ app_dir }}/node_modules" }
     if (Test-Path "{{ tauri_dir }}/node_modules") { Remove-Item -Recurse -Force "{{ tauri_dir }}/node_modules" }
     if (Test-Path "{{ web_dir }}/node_modules") { Remove-Item -Recurse -Force "{{ web_dir }}/node_modules" }
+    if (Test-Path "{{ expo_dir }}/node_modules") { Remove-Item -Recurse -Force "{{ expo_dir }}/node_modules" }
     Push-Location "{{ tauri_dir }}/src-tauri"; cargo clean; Pop-Location
 
 # ─── Internal ─────────────────────────────────────────────────────────
